@@ -36,7 +36,7 @@ public class Visualiser extends JFrame {
 	
 
 	public static void main(String[] args) throws Exception {
-		Visualiser v = new Visualiser(new File("data/50.txt"));
+		Visualiser v = new Visualiser(new File("data/85.txt"));
 		v.setVisible(true);
 		v.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}
