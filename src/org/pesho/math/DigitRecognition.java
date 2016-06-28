@@ -1,12 +1,58 @@
 package org.pesho.math;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
+
 public class DigitRecognition {
 	
-	public int recognize(List<RecordItem> record) {
-		return 0;
+	public float dotProd(float[] a, float[] b) {
+		float res = 0;
+		for(int i = 0; i < a.length; i++) {
+			res += a[i]*b[i];
+		}
+		return res;
+	}
+	
+	public int recognize(List<RecordItem> record) throws Exception {
+		float vectors[][] = train();
+		
+		float v[] = new float[15];
+		int cols[] = getColumns(record, 150);
+//		System.out.println(Arrays.toString(cols));
+//		float power[] = new float[15];
+		
+		for(int i : cols) v[i]++;
+		float total = 0;
+		for(float i : v) total += i;
+		
+		for(int i = 0; i < v.length; i++) {
+			v[i] /= total;
+		}
+		
+		float dots[] = new float[10];
+		for(int i = 0; i < dots.length; i++) {
+			dots[i] = dotProd(vectors[i], v);
+		}
+		
+		float minVal = 1e8f;
+		int minPos = -1;
+		
+		for(int i = 0; i < dots.length; i++) {
+			if(dots[i] < minVal) {
+				minVal = dots[i];
+				minPos = i;
+			}
+		}
+		
+		return minPos;
 	}
 
 	public int getCurvesCount(List<RecordItem> record) {
@@ -64,6 +110,36 @@ public class DigitRecognition {
 		
 		
 		return cols;
+	}
+	
+	public float[][] train() throws JsonIOException, JsonSyntaxException, FileNotFoundException {
+		File dir = new File("train");
+		File[] files = dir.listFiles();
+		final int res = 150;
+		
+		float vectors[][] = new float[10][15];
+		
+		for(File file : files) {
+			int dig = file.getName().charAt(0) - '0';
+			//System.out.println(file.getName());
+			
+			List<RecordItem> record = new Gson().fromJson(new FileReader(file), new TypeToken<List<RecordItem>>(){}.getType());
+			
+			DigitRecognition digitRecognition = new DigitRecognition();
+			int cols[] = digitRecognition.getColumns(record, res);
+//			System.out.println(Arrays.toString(cols));
+//			float power[] = new float[15];
+			
+			for(int i : cols) vectors[dig][i]++;
+			float total = 0;
+			for(float i : vectors[dig]) total += i;
+			
+			for(int i = 0; i < vectors[dig].length; i++) {
+				vectors[dig][i] /= total;
+			}
+		}
+		
+		return vectors; 
 	}
 	
 }
