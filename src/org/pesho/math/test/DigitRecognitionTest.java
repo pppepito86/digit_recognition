@@ -43,15 +43,24 @@ public class DigitRecognitionTest {
 		
 		File dir = new File("data");
 		File[] files = dir.listFiles();
+		
+		int total[] = new int[10];
+		int correct[] = new int[10];
+		
 		for(File file : files) {
 			int expected = file.getName().charAt(0) - '0';
 			List<RecordItem> record = new Gson().fromJson(new FileReader(file), new TypeToken<List<RecordItem>>(){}.getType());
 			int real = digitRecognition.recognize(record);
 			
+			total[expected]++;
+			if(expected == real) correct[expected]++;
 			System.out.println("ex: " + expected + "   " + " real: " + real);
 			//Assert.assertEquals(expected, real);
 		}
 		
+		for(int i = 0; i < 10; i++) {
+			System.out.println(i + " " + (correct[i]-2) + "/" + (total[i]-2));
+		}
 //		System.out.println(file.getAbsolutePath());
 		
 //		digitRecognition.recognize(record);

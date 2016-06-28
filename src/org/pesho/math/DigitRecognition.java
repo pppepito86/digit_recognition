@@ -3,6 +3,7 @@ package org.pesho.math;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,41 +23,30 @@ public class DigitRecognition {
 	}
 	
 	public int recognize(List<RecordItem> record) throws Exception {
-		float vectors[][] = train();
+		List<Sample> samples = train();
 		
 		float v[] = new float[15];
-		int cols[] = getColumns(record, 150);
-//		System.out.println(Arrays.toString(cols));
-//		float power[] = new float[15];
 		
-		for(int i : cols) v[i]++;
-		v[0]=0;
+		v = getTraitsVector(record);
 		
-		float total = 0;
-		for(float i : v) total += i*i;
-		total = (float)Math.sqrt(total);
-		
-		for(int i = 0; i < v.length; i++) {
-			v[i] /= total;
-		}
-		
-		float dots[] = new float[10];
-		for(int i = 0; i < dots.length; i++) {
-			dots[i] = dotProd(vectors[i], v);
-		}
 		
 		float minVal =  -1;
 		int minPos = -1;
 		
-		for(int i = 0; i < dots.length; i++) {
-			if(dots[i] > minVal) {
-				minVal = dots[i];
-				minPos = i;
+		for(int i = 0; i < samples.size(); i++) {
+			float dot = dotProd(samples.get(i).vector, v);
+			
+			if(dot > minVal) {
+				minVal = dot;
+				minPos = samples.get(i).label;
 			}
 		}
+
 		
 		return minPos;
 	}
+	
+	
 
 	public int getCurvesCount(List<RecordItem> record) {
 		int count = 0;
@@ -115,37 +105,95 @@ public class DigitRecognition {
 		return cols;
 	}
 	
-	public float[][] train() throws JsonIOException, JsonSyntaxException, FileNotFoundException {
-		File dir = new File("train");
-		File[] files = dir.listFiles();
-		final int res = 150;
+	public int[] getRows(List<RecordItem> record, int numRows) {
+		int [] rows = new int[numRows];
 		
-		float vectors[][] = new float[10][15];
+		float width = 1 / (float)(numRows+1);
 		
-		for(File file : files) {
-			int dig = file.getName().charAt(0) - '0';
-			//System.out.println(file.getName());
+		for(int i = 1; i <= numRows; i++) {
+			float row = i*width;
 			
-			List<RecordItem> record = new Gson().fromJson(new FileReader(file), new TypeToken<List<RecordItem>>(){}.getType());
-			
-			DigitRecognition digitRecognition = new DigitRecognition();
-			int cols[] = digitRecognition.getColumns(record, res);
-//			System.out.println(Arrays.toString(cols));
-//			float power[] = new float[15];
-			
-			for(int i : cols) vectors[dig][i]++;
-			vectors[dig][0] = 0;
-			
-			float total = 0;
-			for(float i : vectors[dig]) total += i*i;
-			total = (float)Math.sqrt(total);
-			
-			for(int i = 0; i < vectors[dig].length; i++) {
-				vectors[dig][i] /= total;
+			for(int j = 1; j < record.size(); j++) {
+				if(record.get(j-1).getAction() == 1) continue;
+				
+				if(record.get(j).getY() < row && row <= record.get(j-1).getY() ) {
+					rows[i-1]++;
+				} else if(record.get(j).getY() > row && row >= record.get(j-1).getY() ) {
+					rows[i-1]++;
+				}
+				
 			}
 		}
 		
-		return vectors; 
+		
+		return rows;
+	}
+	
+	/**
+	 * res[i] = number of occurences of i in arr;
+	 */
+	public int[] getCounts(int[] arr) { 
+		final int maxElement = 15;
+		int res[] = new int[maxElement];
+		for(int i : arr) res[i]++;
+		return res;
+	}
+	
+	public float[] normalize(int[] vector) {
+		float[] normal = new float[vector.length];
+		
+		float len = 0;
+		for(int i : vector) len += i*i;
+		len = (float)Math.sqrt(len);
+		
+		for(int i = 0; i < normal.length; i++) {
+			normal[i] = vector[i] / len;
+		}
+			
+		return normal;
+	}
+	
+	public float[] getTraitsVector(List<RecordItem> record) {
+		float vector[];
+		final int res = 150;
+		
+		int cols[] = getColumns(record, res);
+		int[] colCounts = getCounts(cols);
+		colCounts[0] = 0;
+		float colNormal[] = normalize(colCounts);
+		
+		int rows[] = getRows(record, res);
+		int[] rowCounts = getCounts(rows);
+		rowCounts[0] = 0;
+		float rowNormal[] = normalize(rowCounts);
+		
+		vector = new float[colNormal.length + rowNormal.length];
+		int vecIdx = 0;
+		for(float x : colNormal) vector[vecIdx++] = x;
+		for(float x : rowNormal) vector[vecIdx++] = x;
+		
+		
+		return vector;
+	}
+	
+	
+	public List<Sample> train() throws JsonIOException, JsonSyntaxException, FileNotFoundException {
+		File dir = new File("train");
+		File[] files = dir.listFiles();
+		
+//		float vectors[][] = new float[10][];
+		
+		List<Sample> samples = new ArrayList<Sample>();
+		for(File file : files) {
+			int dig = file.getName().charAt(0) - '0';
+			
+			List<RecordItem> record = new Gson().fromJson(new FileReader(file), new TypeToken<List<RecordItem>>(){}.getType());
+			float vector[] = getTraitsVector(record);
+			samples.add(new Sample(dig, vector));
+//			System.out.println(dig + " : " + Arrays.toString(vectors[dig]));
+		}
+		
+		return samples; 
 	}
 	
 }
