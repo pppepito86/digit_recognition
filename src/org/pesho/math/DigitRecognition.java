@@ -18,8 +18,8 @@ public class DigitRecognition {
 	}
 	
 	public char[][] drawMatrix(List<RecordItem> record) {
-		int w = 20;
-		int h = 30;
+		int w = 200;
+		int h = 300;
 		char[][] mat = new char[h][w];
 		for(int i = 0; i < mat.length; i++)
 			Arrays.fill(mat[i], ' ');
@@ -40,6 +40,30 @@ public class DigitRecognition {
 //			System.out.println(mat[i]);
 		
 		return mat;
+	}
+	
+	public int[] getColumns(List<RecordItem> record, int numCols) {
+		int [] cols = new int[numCols];
+		
+		float width = 1 / (float)(numCols+1);
+		
+		for(int i = 1; i <= numCols; i++) {
+			float col = i*width;
+			
+			for(int j = 1; j < record.size(); j++) {
+				if(record.get(j-1).getAction() == 1) continue;
+				
+				if(record.get(j).getX() < col && col <= record.get(j-1).getX() ) {
+					cols[i-1]++;
+				} else if(record.get(j).getX() > col && col >= record.get(j-1).getX() ) {
+					cols[i-1]++;
+				}
+				
+			}
+		}
+		
+		
+		return cols;
 	}
 	
 }
