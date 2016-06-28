@@ -68,10 +68,10 @@ public class Visualiser extends JFrame {
 	
 
 	public static void main(String[] args) throws Exception {
-		String digit = "1";
-		File[] files = new File[4];
+		String digit = "5";
+		File[] files = new File[3];
 		for (int i = 0; i < files.length; i++) {
-			files[i] = new File("data/"+digit+(4+i)+".txt");
+			files[i] = new File("data/"+digit+(10+i)+".txt");
 		}
 		Visualiser v = new Visualiser(files);
 		v.setVisible(true);
