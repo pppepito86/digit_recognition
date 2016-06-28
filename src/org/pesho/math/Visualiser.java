@@ -28,6 +28,7 @@ public class Visualiser extends JFrame {
         for (int i = 1; i < record.size(); i++) {
         	RecordItem i1 = record.get(i-1);
         	RecordItem i2 = record.get(i);
+        	if (i2.getAction() == 0) continue;
             Line2D line = new Line2D.Float(i1.getX()* 600, i1.getY()*900, i2.getX()*600, i2.getY()*900);
             g2.draw(line);
         }
@@ -35,7 +36,7 @@ public class Visualiser extends JFrame {
 	
 
 	public static void main(String[] args) throws Exception {
-		Visualiser v = new Visualiser(new File("data/00.txt"));
+		Visualiser v = new Visualiser(new File("data/50.txt"));
 		v.setVisible(true);
 		v.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}
