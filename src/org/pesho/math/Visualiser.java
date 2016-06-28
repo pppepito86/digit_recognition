@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.FileReader;
 import java.util.List;
@@ -55,7 +56,6 @@ public class Visualiser extends JFrame {
         	float y2 = i2.getY() - minY; y2 *= Y/(maxY-minY);
             Line2D line = new Line2D.Float(x1, y1+20, x2, y2+20);
             g2.draw(line);
-
         }
         for (int i = 0; i < record.size(); i++) {
         	RecordItem item = record.get(i);
@@ -64,15 +64,28 @@ public class Visualiser extends JFrame {
             Ellipse2D ellipse = new Ellipse2D.Float((float)(x-2.5), (float)(y-2.5)+20f, 5f, 5f);
             g2.draw(ellipse);
         }
+        Ellipse2D ellipse = drawPoint(record, 30);
+        g2.draw(ellipse);
+        ellipse = drawPoint(record, 60);
+        g2.draw(ellipse);
+	}
+
+	private Ellipse2D drawPoint(List<RecordItem> record, int point) {
+		Point2D.Double ppp = DistanceCalculator.getPointsCoordinates(record, point);
+        Ellipse2D ellipse = new Ellipse2D.Float((float)(ppp.getX()*X-5), (float)(ppp.getY()*Y-5)+20f, 10f, 10f);
+		return ellipse;
 	}
 	
 
 	public static void main(String[] args) throws Exception {
 		String digit = "5";
 		File[] files = new File[3];
-		for (int i = 0; i < files.length; i++) {
-			files[i] = new File("data/"+digit+(10+i)+".txt");
-		}
+		//for (int i = 0; i < files.length; i++) {
+			//files[i] = new File("data/"+digit+(10+i)+".txt");
+		//}
+		files[0] = new File("data/44.txt");
+		files[1] = new File("data/45.txt");
+		files[2] = new File("data/46.txt");
 		Visualiser v = new Visualiser(files);
 		v.setVisible(true);
 		v.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
