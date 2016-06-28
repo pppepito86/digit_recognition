@@ -30,6 +30,8 @@ public class DigitRecognition {
 //		float power[] = new float[15];
 		
 		for(int i : cols) v[i]++;
+		v[0]=0;
+		
 		float total = 0;
 		for(float i : v) total += i*i;
 		total = (float)Math.sqrt(total);
@@ -132,6 +134,8 @@ public class DigitRecognition {
 //			float power[] = new float[15];
 			
 			for(int i : cols) vectors[dig][i]++;
+			vectors[dig][0] = 0;
+			
 			float total = 0;
 			for(float i : vectors[dig]) total += i*i;
 			total = (float)Math.sqrt(total);
