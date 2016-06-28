@@ -1,5 +1,6 @@
 package org.pesho.math.test;
 
+import java.awt.dnd.DragGestureEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -54,7 +55,7 @@ public class DigitRecognitionTest {
 			
 			total[expected]++;
 			if(expected == real) correct[expected]++;
-			System.out.println("ex: " + expected + "   " + " real: " + real);
+			else System.out.println("ex: " + expected + "   " + " real: " + real);
 			//Assert.assertEquals(expected, real);
 		}
 		
@@ -64,6 +65,40 @@ public class DigitRecognitionTest {
 //		System.out.println(file.getAbsolutePath());
 		
 //		digitRecognition.recognize(record);
+	}
+	
+	@Test
+	public void printProbMatrix() throws Exception {
+		DigitRecognition digitRecognition = new DigitRecognition();
+		float[][] probabilityMatrix = digitRecognition.getProbabilityMatrix();
+		
+		for(int i = 0; i < probabilityMatrix.length; i++) {
+			for(int j = 0; j < probabilityMatrix[i].length; j++) {
+				System.out.printf("%.3f ", probabilityMatrix[i][j]);
+			}
+			System.out.println();
+		}
+	}
+	
+	@Test
+	public void testProbMatrix() throws Exception {
+		
+		File dir = new File("data");	
+		
+		List<RecordItem> record8 = new Gson().fromJson(new FileReader(new File(dir, "85.txt")), new TypeToken<List<RecordItem>>(){}.getType());
+		List<RecordItem> record0 = new Gson().fromJson(new FileReader(new File(dir, "05.txt")), new TypeToken<List<RecordItem>>(){}.getType());
+		
+		
+		DigitRecognition digitRecognition = new DigitRecognition();
+		float[][] probabilityMatrix = digitRecognition.getProbabilityMatrix();
+		
+		int out8 = digitRecognition.recognize(record8);
+		int out0 = digitRecognition.recognize(record0);
+		
+		System.out.println(out8 + " " + out0);
+		
+		float prob = probabilityMatrix[out8][8] * probabilityMatrix[out0][0];
+		System.out.println(prob);
 	}
 	
 	public void testDrawMatrix() throws JsonIOException, JsonSyntaxException, FileNotFoundException {

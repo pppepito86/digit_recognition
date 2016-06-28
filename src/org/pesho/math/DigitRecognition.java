@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
@@ -13,6 +14,50 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 public class DigitRecognition {
+	private List<Sample> samples;
+	
+	public DigitRecognition() {
+		try {
+			samples = train();
+		} catch (JsonIOException | JsonSyntaxException | FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * mat[i][j] = the probability of the real character being j if the algorithms outputs i 
+	 * @return
+	 * @throws Exception 
+	 */
+	public float[][] getProbabilityMatrix() throws Exception {
+		File dir = new File("data");
+		File[] files = dir.listFiles();
+		
+		
+		int[][] occurences = new int[10][10];
+		
+		for(File file : files) {
+			int expected = file.getName().charAt(0) - '0';
+			List<RecordItem> record = new Gson().fromJson(new FileReader(file), new TypeToken<List<RecordItem>>(){}.getType());
+			int real = recognize(record);
+			
+			occurences[real][expected] ++;
+		}	
+		
+		for(int i = 0; i < 10; i++) occurences[i][i] -= samples.size()/10;
+		
+		float matrix[][] = new float[10][10];
+		
+		for(int i = 0; i < 10; i++) {
+			int sum = Arrays.stream(occurences[i]).sum();
+			if(sum != 0)
+				for(int j = 0; j < 10; j++) {
+					matrix[i][j] = occurences[i][j] / (float) sum;
+				}
+		}
+		
+		return matrix;
+	}
 	
 	public float dotProd(float[] a, float[] b) {
 		float res = 0;
@@ -23,7 +68,7 @@ public class DigitRecognition {
 	}
 	
 	public int recognize(List<RecordItem> record) throws Exception {
-		List<Sample> samples = train();
+		
 		
 		float v[] = new float[15];
 		
@@ -33,6 +78,7 @@ public class DigitRecognition {
 		float minVal =  -1;
 		int minPos = -1;
 		
+		
 		for(int i = 0; i < samples.size(); i++) {
 			float dot = dotProd(samples.get(i).vector, v);
 			
@@ -41,6 +87,19 @@ public class DigitRecognition {
 				minPos = samples.get(i).label;
 			}
 		}
+		
+//		float best = minVal;
+//		minVal = -1;
+//		
+//		for(int i = 0; i < samples.size(); i++) {
+//			float dot = dotProd(samples.get(i).vector, v);
+//			
+//			if(dot != best && dot > minVal) {
+//				minVal = dot;
+//				minPos = samples.get(i).label;
+//			}
+//		}
+
 
 		
 		return minPos;
