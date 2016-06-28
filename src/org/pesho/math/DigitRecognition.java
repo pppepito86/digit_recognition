@@ -31,7 +31,8 @@ public class DigitRecognition {
 		
 		for(int i : cols) v[i]++;
 		float total = 0;
-		for(float i : v) total += i;
+		for(float i : v) total += i*i;
+		total = (float)Math.sqrt(total);
 		
 		for(int i = 0; i < v.length; i++) {
 			v[i] /= total;
@@ -42,11 +43,11 @@ public class DigitRecognition {
 			dots[i] = dotProd(vectors[i], v);
 		}
 		
-		float minVal = 1e8f;
+		float minVal =  -1;
 		int minPos = -1;
 		
 		for(int i = 0; i < dots.length; i++) {
-			if(dots[i] < minVal) {
+			if(dots[i] > minVal) {
 				minVal = dots[i];
 				minPos = i;
 			}
@@ -132,7 +133,8 @@ public class DigitRecognition {
 			
 			for(int i : cols) vectors[dig][i]++;
 			float total = 0;
-			for(float i : vectors[dig]) total += i;
+			for(float i : vectors[dig]) total += i*i;
+			total = (float)Math.sqrt(total);
 			
 			for(int i = 0; i < vectors[dig].length; i++) {
 				vectors[dig][i] /= total;
