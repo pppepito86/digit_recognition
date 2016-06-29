@@ -74,7 +74,10 @@ public class AngleComparisson {
 		return smooth;
 	}
 	
-	public void analyze (List<Double> data) {
+	public void analyze (List<Double> data, List<RecordItem> record) {
+		double totalLength = getCurveLength(record, 0, record.size()-1);
+		System.out.println("Total length: " + totalLength);
+		
 		int MIN_LEN = 5; //data.size() / 6;
 		final double MAX_LINE_OSCILLATION = Math.PI / 6;
 		
@@ -85,7 +88,8 @@ public class AngleComparisson {
 			for(int j = i+1; j < data.size(); j++) {				
 				if(Math.abs(startAngle - data.get(j)) > MAX_LINE_OSCILLATION || (Math.abs(data.get(j) - data.get(j-1)) > Math.PI/2)) { 
 					if( j - i > MIN_LEN) {
-						System.out.println("Line with angle: " + (total/(j-i))*180/Math.PI + " from " + i + " to " + j);
+						double len = getCurveLength(record, i, j-1) / totalLength;
+						System.out.println("Line with angle: " + (total/(j-i))*180/Math.PI + " from " + i + " to " + j + " with length " + len);
 						i = j;
 					}
 					break;
@@ -98,22 +102,26 @@ public class AngleComparisson {
 		
 		for(int i = 0; i < data.size(); i++) {
 			double startAngle = data.get(i);
-			double total = startAngle;
 			
 			for(int j = i+1; j < data.size(); j++) {
 				if(!(data.get(j) >= data.get(j-1)) || (Math.abs(data.get(j) - data.get(j-1)) > Math.PI/2)) { 
 					if( j - i > MIN_LEN && Math.abs(data.get(j-1) - data.get(i)) > MAX_LINE_OSCILLATION) {
-						System.out.println("Arc with angle: " +(data.get(j-1) - data.get(i))*180/Math.PI + " from " + i + " to " + j);
+						double len = getCurveLength(record, i, j-1) / totalLength;
+						double angle = (data.get(j-1) - data.get(i))*180/Math.PI ;
+						System.out.println("Arc with angle: " + angle + " from " + i + " to " + j + " with length " + len);
 						i = j;
 					}
 					break;
 				}
 			}
 			
+			
 			for(int j = i+1; j < data.size(); j++) {
 				if(!(data.get(j) <= data.get(j-1)) || (Math.abs(data.get(j) - data.get(j-1)) > Math.PI/2)) { 
 					if( j - i > MIN_LEN && Math.abs(data.get(j-1) - data.get(i)) > MAX_LINE_OSCILLATION) {
-						System.out.println("Arc with angle: " + (data.get(j-1) - data.get(i))*180/Math.PI + " from " + i + " to " + j);
+						double len = getCurveLength(record, i, j-1) / totalLength;
+						double angle = (data.get(j-1) - data.get(i))*180/Math.PI ;
+						System.out.println("Arc with angle: " + angle + " from " + i + " to " + j + " with length " + len);
 						i = j;
 					}
 					break;
@@ -123,6 +131,20 @@ public class AngleComparisson {
 		
 	}
 	
+	
+	public double getCurveLength(List<RecordItem> record, int a, int b) {
+		double length = 0;
+		for(int i = a+1; i <= b; i++) {
+			RecordItem ri1 = record.get(i-1);
+			RecordItem ri2 = record.get(i);
+			
+			double dx = ri1.getX() - ri2.getX();
+			double dy = ri1.getY() - ri2.getY();
+			length += Math.sqrt(dx*dx + dy*dy);
+		}
+		
+		return length;
+	}
 	
 	public static void main(String[] args) throws Exception {
 		File dir = new File("data");
@@ -135,21 +157,19 @@ public class AngleComparisson {
 		
 //		File[] files = dir.listFiles();
 //		for(File file : files) {
-			System.out.print(file.getName() + ", ");
-			List<RecordItem> record = new Gson().fromJson(new FileReader(file), new TypeToken<List<RecordItem>>(){}.getType());
-			AngleComparisson angleComparisson = new AngleComparisson();
-			List<Double> angles = angleComparisson.getAngles(record);
-			System.out.println(angles);
+		System.out.print(file.getName() + ", ");
+		List<RecordItem> record = new Gson().fromJson(new FileReader(file), new TypeToken<List<RecordItem>>(){}.getType());
+		AngleComparisson angleComparisson = new AngleComparisson();
+		List<Double> angles = angleComparisson.getAngles(record);
+		System.out.println(angles);
 //		}
 		
-			List<Double> smooth = angleComparisson.smooth(angles);
+		List<Double> smooth = angleComparisson.smooth(angles);
 			
 		LinearVisualiser.plot(angles);
 		LinearVisualiser.plot(smooth);
 		
-		angleComparisson.analyze(smooth);
-		
-		
+		angleComparisson.analyze(smooth, record);
 	}
 	
 }
